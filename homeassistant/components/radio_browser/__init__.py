@@ -137,7 +137,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         if idx >= len(favorites) or idx < 0:
             return
 
-        try_play_radio(radios, favorites[idx], player)
+        await try_play_radio(radios, favorites[idx], player)
         hass.data[DOMAIN][LAST_FAVORITE] = idx
 
     async def next_radio(service):
@@ -152,7 +152,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         idx = min(idx, len(favorites) - 1)
         idx = max(idx, 0)
 
-        try_play_radio(radios, favorites[idx], player)
+        await try_play_radio(radios, favorites[idx], player)
         hass.data[DOMAIN][LAST_FAVORITE] = idx
 
     async def prev_radio(service):
@@ -167,7 +167,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         idx = min(idx, len(favorites) - 1)
         idx = max(idx, 0)
 
-        try_play_radio(radios, favorites[idx], player)
+        await try_play_radio(radios, favorites[idx], player)
         hass.data[DOMAIN][LAST_FAVORITE] = idx
 
     # Register the services

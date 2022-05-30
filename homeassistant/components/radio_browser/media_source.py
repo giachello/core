@@ -22,7 +22,7 @@ from homeassistant.components.media_source.models import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 
-from .const import CONF_RADIO_BROWSER, DOMAIN
+from .const import CONF_FAVORITE_RADIOS, CONF_RADIO_BROWSER, DOMAIN
 
 CODEC_TO_MIMETYPE = {
     "MP3": "audio/mpeg",
@@ -97,6 +97,7 @@ class RadioMediaSource(MediaSource):
             can_expand=True,
             children_media_class=MEDIA_CLASS_DIRECTORY,
             children=[
+                *await self._async_build_favorites(radios, item),
                 *await self._async_build_popular(radios, item),
                 *await self._async_build_by_tag(radios, item),
                 *await self._async_build_by_language(radios, item),
@@ -296,6 +297,35 @@ class RadioMediaSource(MediaSource):
                     media_class=MEDIA_CLASS_DIRECTORY,
                     media_content_type=MEDIA_TYPE_MUSIC,
                     title="By Category",
+                    can_play=False,
+                    can_expand=True,
+                )
+            ]
+
+        return []
+
+    async def _async_build_favorites(
+        self, radios: RadioBrowser, item: MediaSourceItem
+    ) -> list[BrowseMediaSource]:
+        """Handle browsing popular radio stations."""
+        if item.identifier == "favorites":
+            favorites = self.hass.data[DOMAIN][CONF_FAVORITE_RADIOS]
+            stations = []
+            for _f in favorites:
+                found_stations = await radios.stations(
+                    filter_by=FilterBy.NAME_EXACT, filter_term=_f
+                )
+                stations.append(found_stations[0])
+            return self._async_build_stations(radios, stations)
+
+        if not item.identifier:
+            return [
+                BrowseMediaSource(
+                    domain=DOMAIN,
+                    identifier="favorites",
+                    media_class=MEDIA_CLASS_DIRECTORY,
+                    media_content_type=MEDIA_TYPE_MUSIC,
+                    title="Favorites",
                     can_play=False,
                     can_expand=True,
                 )
